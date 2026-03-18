@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pedido de fotocopias</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #f5f5f5; padding: 20px; }
+    .card { background: white; border-radius: 12px; padding: 24px; max-width: 500px; margin: 0 auto; }
+    h1 { font-size: 22px; margin-bottom: 6px; }
+    p.sub { color: #666; font-size: 14px; margin-bottom: 24px; }
+    label { font-size: 14px; color: #444; display: block; margin-bottom: 5px; margin-top: 14px; }
+    input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; }
+    textarea { height: 80px; resize: none; }
+    .btn { width: 100%; margin-top: 20px; padding: 14px; background: #13678A; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
+    .btn:hover { opacity: 0.9; }
+    .mensaje { margin-top: 16px; padding: 12px; border-radius: 8px; font-size: 14px; text-align: center; display: none; }
+    .ok { background: #EAF3DE; color: #3B6D11; }
+    .error { background: #FCEBEB; color: #A32D2D; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Pedido de fotocopias</h1>
+    <p class="sub">Completa el formulario y tu pedido llega directo a la tienda.</p>
+
+    <label>Tu nombre *</label>
+    <input type="text" id="nombre" placeholder="Ej: Martina González">
+
+    <label>Teléfono (opcional)</label>
+    <input type="tel" id="telefono" placeholder="Ej: +56 9 1234 5678">
+
+    <label>Tipo de trabajo *</label>
+    <select id="tipo">
+      <option value="">Selecciona...</option>
+      <option>Fotocopias</option>
+      <option>Impresión B/N</option>
+      <option>Impresión color</option>
+      <option>Anillado</option>
+      <option>Laminado</option>
+      <option>Escaneo</option>
+    </select>
+
+    <label>Cantidad de copias *</label>
+    <input type="number" id="copias" min="1" value="1">
+
+    <label>Instrucciones (doble cara, tamaño, etc.)</label>
+    <textarea id="instrucciones" placeholder="Ej: doble cara, tamaño oficio, grapado..."></textarea>
+
+    <label>Archivo a imprimir *</label>
+    <input type="file" id="archivo" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+
+    <button class="btn" onclick="enviarPedido()">Enviar pedido</button>
+    <div class="mensaje" id="mensaje"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://nxftuzqhptqpfwpcydag.supabase.co'
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54ZnR1enFocHRxcGZ3cGN5ZGFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjkxMDIsImV4cCI6MjA4OTQ0NTEwMn0.FsufrLL0EormHjiyEixi4Xh0CfkXc-aXOtnC64l-4GQ'
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+    async function enviarPedido() {
+      const nombre = document.getElementById('nombre').value.trim()
+      const telefono = document.getElementById('telefono').value.trim()
+      const tipo = document.getElementById('tipo').value
+      const copias = document.getElementById('copias').value
+      const instrucciones = document.getElementById('instrucciones').value.trim()
+      const archivo = document.getElementById('archivo').files[0]
+
+      if (!nombre || !tipo || !archivo) {
+        mostrarMensaje('Por favor completa los campos obligatorios (*) y sube un archivo.', 'error')
+        return
+      }
+
+      const btn = document.querySelector('.btn')
+      btn.textContent = 'Enviando...'
+      btn.disabled = true
+
+      try {
+        const ext = archivo.name.split('.').pop()
+        const nombreArchivo = `${Date.now()}.${ext}`
+        const { error: errorArchivo } = await sb.storage
+          .from('archivos-pedidos')
+          .upload(nombreArchivo, archivo)
+
+        if (errorArchivo) throw errorArchivo
+
+        const { data: urlData } = sb.storage
+          .from('archivos-pedidos')
+          .getPublicUrl(nombreArchivo)
+
+        const { error: errorPedido } = await sb
+          .from('pedidos')
+          .insert({
+            nombre,
+            telefono,
+            tipo,
+            copias: parseInt(copias),
+            instrucciones,
+            archivo_url: urlData.publicUrl,
+            archivo_nombre: archivo.name
+          })
+
+        if (errorPedido) throw errorPedido
+
+        mostrarMensaje('¡Pedido enviado! Te avisamos cuando esté listo.', 'ok')
+        document.querySelectorAll('input, select, textarea').forEach(el => el.value = '')
+
+      } catch (err) {
+        mostrarMensaje('Hubo un error al enviar el pedido. Intenta de nuevo.', 'error')
+        console.error(err)
+      }
+
+      btn.textContent = 'Enviar pedido'
+      btn.disabled = false
+    }
+
+    function mostrarMensaje(texto, tipo) {
+      const el = document.getElementById('mensaje')
+      el.textContent = texto
+      el.className = 'mensaje ' + tipo
+      el.style.display = 'block'
+    }
+  </script>
+</body>
+</html>
