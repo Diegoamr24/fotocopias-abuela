@@ -37,6 +37,18 @@
   </style>
 </head>
 <body>
+
+    <div id="login" style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f5f5f5;">
+  <div style="background:white;padding:32px;border-radius:12px;width:100%;max-width:320px;">
+    <h2 style="font-size:20px;margin-bottom:6px;">Panel de pedidos</h2>
+    <p style="font-size:14px;color:#666;margin-bottom:20px;">Ingresa la contraseña para continuar.</p>
+    <input type="password" id="clave-input" placeholder="Contraseña" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:15px;margin-bottom:10px;">
+    <button onclick="verificarClave()" style="width:100%;padding:12px;background:#13678A;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer;">Entrar</button>
+    <p id="error-clave" style="color:#A32D2D;font-size:13px;margin-top:8px;display:none;">Contraseña incorrecta.</p>
+  </div>
+</div>
+
+<div id="contenido" style="display:none;">
   <h1>Panel de pedidos</h1>
   <p class="sub">Los pedidos aparecen aquí automáticamente.</p>
 
@@ -147,7 +159,24 @@
       })
       .subscribe()
 
-    cargarPedidos()
+    // cargarPedidos() — se llama después del login
+
+        const CLAVE = 'abuela123'
+
+    function verificarClave() {
+        const input = document.getElementById('clave-input').value
+        if (input === CLAVE) {
+        document.getElementById('login').style.display = 'none'
+        document.getElementById('contenido').style.display = 'block'
+        cargarPedidos()
+        } else {
+        document.getElementById('error-clave').style.display = 'block'
+        }
+    }
+
+    document.getElementById('clave-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') verificarClave()
+    })
   </script>
 </body>
 </html>
