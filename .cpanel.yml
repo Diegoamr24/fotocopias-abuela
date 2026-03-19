@@ -1,0 +1,6 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/gadimpor/fotocopias-repo
+    - /bin/cp cliente.html $DEPLOYPATH/cliente.html
+    - /bin/cp panel.html $DEPLOYPATH/panel.html
