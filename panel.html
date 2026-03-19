@@ -163,7 +163,16 @@
 
     // cargarPedidos() — se llama después del login
 
-        const CLAVE = 'blanca24'
+        let CLAVE = ''
+
+        async function obtenerClave() {
+        const { data, error } = await sb
+            .from('config')
+            .select('valor')
+            .eq('clave', 'panel_password')
+            .single()
+        if (!error && data) CLAVE = data.valor
+        }
 
     function verificarClave() {
         const input = document.getElementById('clave-input').value
@@ -181,9 +190,11 @@
         cargarPedidos()
         }
 
-        if (localStorage.getItem('panel-auth') === 'true') {
-        mostrarPanel()
-        }
+        obtenerClave().then(() => {
+            if (localStorage.getItem('panel-auth') === 'true') {
+                mostrarPanel()
+            }
+            })
     document.getElementById('clave-input').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') verificarClave()
     })
