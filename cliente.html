@@ -49,7 +49,12 @@
     <textarea id="instrucciones" placeholder="Ej: doble cara, tamaño oficio, grapado..."></textarea>
 
     <label>Archivo a imprimir *</label>
-    <input type="file" id="archivo" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+    <div id="zona-archivos" style="border:1px solid #ddd;border-radius:8px;padding:12px;">
+    <div id="lista-archivos" style="margin-bottom:8px;display:none;"></div>
+    <button type="button" onclick="seleccionarArchivo()" style="padding:8px 14px;border:1px dashed #aaa;border-radius:8px;background:transparent;font-size:14px;color:#555;cursor:pointer;width:100%;">+ Agregar archivo</button>
+    <input type="file" id="input-archivo-oculto" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display:none;" onchange="archivoSeleccionado(this)">
+    </div>
+    <p style="font-size:13px;color:#999;margin-top:6px;">PDF, Word, JPG o PNG.</p>
 
     <button class="btn" onclick="enviarPedido()">Enviar pedido</button>
     <div class="mensaje" id="mensaje"></div>
@@ -61,47 +66,87 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54ZnR1enFocHRxcGZ3cGN5ZGFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjkxMDIsImV4cCI6MjA4OTQ0NTEwMn0.FsufrLL0EormHjiyEixi4Xh0CfkXc-aXOtnC64l-4GQ'
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
+    let archivosSeleccionados = []
+
+    function seleccionarArchivo() {
+    document.getElementById('input-archivo-oculto').click()
+    }
+
+    function archivoSeleccionado(input) {
+    const archivo = input.files[0]
+    if (!archivo) return
+    archivosSeleccionados.push(archivo)
+    input.value = ''
+    renderizarArchivos()
+    }
+
+    function eliminarArchivo(index) {
+    archivosSeleccionados.splice(index, 1)
+    renderizarArchivos()
+    }
+
+    function renderizarArchivos() {
+    const lista = document.getElementById('lista-archivos')
+    if (archivosSeleccionados.length === 0) {
+        lista.style.display = 'none'
+        lista.innerHTML = ''
+        return
+    }
+    lista.style.display = 'block'
+    lista.innerHTML = archivosSeleccionados.map((a, i) => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:#f5f5f5;border-radius:6px;margin-bottom:6px;font-size:14px;">
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80%;">${a.name}</span>
+        <button type="button" onclick="eliminarArchivo(${i})" style="border:none;background:none;color:#A32D2D;cursor:pointer;font-size:16px;padding:0 4px;">×</button>
+        </div>
+    `).join('')
+    }
+
     async function enviarPedido() {
       const nombre = document.getElementById('nombre').value.trim()
       const telefono = document.getElementById('telefono').value.trim()
       const tipo = document.getElementById('tipo').value
       const copias = document.getElementById('copias').value
       const instrucciones = document.getElementById('instrucciones').value.trim()
-      const archivo = document.getElementById('archivo').files[0]
+      const archivos = archivosSeleccionados
 
-      if (!nombre || !tipo || !archivo) {
-        mostrarMensaje('Por favor completa los campos obligatorios (*) y sube un archivo.', 'error')
+        if (!nombre || !tipo || archivos.length === 0) {
+        mostrarMensaje('Por favor completa los campos obligatorios (*) y sube al menos un archivo.', 'error')
         return
-      }
+        }
 
       const btn = document.querySelector('.btn')
       btn.textContent = 'Enviando...'
       btn.disabled = true
 
       try {
+        const urlsArchivos = []
+        const nombresArchivos = []
+
+        for (const archivo of archivos) {
         const ext = archivo.name.split('.').pop()
-        const nombreArchivo = `${Date.now()}.${ext}`
+        const nombreArchivo = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
         const { error: errorArchivo } = await sb.storage
-          .from('archivos-pedidos')
-          .upload(nombreArchivo, archivo)
-
+            .from('archivos-pedidos')
+            .upload(nombreArchivo, archivo)
         if (errorArchivo) throw errorArchivo
-
         const { data: urlData } = sb.storage
-          .from('archivos-pedidos')
-          .getPublicUrl(nombreArchivo)
+            .from('archivos-pedidos')
+            .getPublicUrl(nombreArchivo)
+        urlsArchivos.push(urlData.publicUrl)
+        nombresArchivos.push(archivo.name)
+        }
 
         const { error: errorPedido } = await sb
-          .from('pedidos')
-          .insert({
+        .from('pedidos')
+        .insert({
             nombre,
             telefono,
             tipo,
             copias: parseInt(copias),
             instrucciones,
-            archivo_url: urlData.publicUrl,
-            archivo_nombre: archivo.name
-          })
+            archivo_url: urlsArchivos.join('||'),
+            archivo_nombre: nombresArchivos.join('||')
+        })
 
         if (errorPedido) throw errorPedido
 
