@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel - Fotocopias</title>
-  <script src="config.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: sans-serif; background: #f5f5f5; padding: 20px; }
@@ -68,8 +67,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const SUPABASE_URL = CONFIG.supabaseUrl
-    const SUPABASE_KEY = CONFIG.supabaseKey
+    const SUPABASE_URL = 'https://nxftuzqhptqpfwpcydag.supabase.co'
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54ZnR1enFocHRxcGZ3cGN5ZGFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjkxMDIsImV4cCI6MjA4OTQ0NTEwMn0.FsufrLL0EormHjiyEixi4Xh0CfkXc-aXOtnC64l-4GQ'
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
     let pedidos = []
@@ -164,7 +163,7 @@
 
     // cargarPedidos() — se llama después del login
 
-        const CLAVE = CONFIG.panelPassword
+        const CLAVE = 'blanca24'
 
     function verificarClave() {
         const input = document.getElementById('clave-input').value
