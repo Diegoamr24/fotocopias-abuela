@@ -140,7 +140,7 @@
             </button>
             ${p.archivo_url ? p.archivo_url.split('||').map((url, i) => {
                 const nombre = p.archivo_nombre ? p.archivo_nombre.split('||')[i] : `Archivo ${i+1}`
-                return `<a class="btn-archivo" href="${url}" download="${nombre}" title="${nombre}">⬇ ${nombre}</a>`
+                return `<a class="btn-archivo" href="descargar.php?url=${encodeURIComponent(url)}&nombre=${encodeURIComponent(nombre)}" title="${nombre}">⬇ ${nombre}</a>`
             }).join('') : ''}
           </div>
         </div>
