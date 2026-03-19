@@ -17,6 +17,10 @@
     .filtro { padding: 6px 14px; border-radius: 8px; border: 1px solid #ddd; background: white; font-size: 14px; cursor: pointer; }
     .filtro.active { background: #13678A; color: white; border-color: #13678A; }
     .pedido { background: white; border-radius: 10px; padding: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    @media (max-width: 600px) {
+      .pedido { flex-direction: column; }
+      .acciones { width: 100%; }
+    }
     .pedido.listo { opacity: 0.5; }
     .pedido-info { flex: 1; }
     .pedido-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
