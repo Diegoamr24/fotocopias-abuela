@@ -152,6 +152,8 @@
 
         mostrarMensaje('¡Pedido enviado! Te avisamos cuando esté listo.', 'ok')
         document.querySelectorAll('input, select, textarea').forEach(el => el.value = '')
+        archivosSeleccionados = []
+        renderizarArchivos()
 
       } catch (err) {
         mostrarMensaje('Hubo un error al enviar el pedido. Intenta de nuevo.', 'error')
