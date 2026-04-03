@@ -45,6 +45,8 @@
     .btn-wa:hover { background: #C0DD97; }
     .btn-eliminar { padding: 7px 14px; font-size: 13px; cursor: pointer; border-radius: 8px; background: #FCEBEB; color: #A32D2D; border: 1px solid #F09595; width: 100%; }
     .btn-eliminar:hover { background: #F09595; }
+    .btn-archivo.descargado { background: #f1f1f1; color: #888; border-color: #ddd; }
+    .btn-archivo.descargado::before { content: '✓ '; }
   </style>
 </head>
 <body>
@@ -188,7 +190,9 @@
             </div>
             ${p.archivo_url ? p.archivo_url.split('||').map((url, i) => {
                 const nombre = p.archivo_nombre ? p.archivo_nombre.split('||')[i] : `Archivo ${i+1}`
-                return `<a class="btn-archivo" href="descargar.php?url=${encodeURIComponent(url)}&nombre=${encodeURIComponent(nombre)}" title="${nombre}">⬇ ${nombre}</a>`
+                const key = 'descargado-' + btoa(url).slice(0, 20)
+                const yaDescargado = localStorage.getItem(key)
+                return `<a class="btn-archivo ${yaDescargado ? 'descargado' : ''}" href="descargar.php?url=${encodeURIComponent(url)}&nombre=${encodeURIComponent(nombre)}" title="${nombre}" onclick="marcarDescargado('${key}', this)">⬇ ${nombre}</a>`
             }).join('') : ''}
             <button class="btn-eliminar" onclick="eliminarPedido('${p.id}')">Eliminar</button>
             </div>
@@ -283,6 +287,12 @@
 
   function cerrarQR() {
     document.getElementById('modal-qr').style.display = 'none'
+  }
+  function marcarDescargado(key, el) {
+    setTimeout(() => {
+      localStorage.setItem(key, 'true')
+      el.classList.add('descargado')
+    }, 500)
   }
   </script>
 </body>
